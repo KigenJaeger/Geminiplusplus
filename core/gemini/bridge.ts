@@ -26,6 +26,7 @@ export interface BridgeSnapshot {
     memoryEnabled: boolean;
     presetEnabled: boolean;
     presetCadence: 'first_message' | 'every_message' | 'off';
+    skillInjectionEnabled: boolean;
   };
 }
 

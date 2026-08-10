@@ -36,6 +36,8 @@ export default defineContentScript({
     let snapshot: BridgeSnapshot | null = null;
     let pendingText = '';
     let messageCount = 0;
+    let activeSkillName: string | null = null;
+    let conversationPath = location.pathname;
 
     window.addEventListener('message', (event) => {
       if (event.source !== window) return;
@@ -53,8 +55,20 @@ export default defineContentScript({
       return text.includes('f.req=');
     }
 
+    function resetConversationContextIfChanged(): void {
+      const nextPath = location.pathname;
+      if (nextPath === conversationPath) return;
+      conversationPath = nextPath;
+      pendingText = '';
+      messageCount = 0;
+      activeSkillName = null;
+      postBridge({ kind: 'ACTIVE_SKILL', name: null });
+      postBridge({ kind: 'MSG_COUNT', count: 0 });
+    }
+
     // 计算增强后的请求体；找不到原文或无需增强时返回 null。
     function tryAugmentBody(bodyStr: string): string | null {
+      resetConversationContextIfChanged();
       if (!snapshot) {
         debug('跳过：尚未收到 ISOLATED 快照');
         return null;
@@ -62,6 +76,9 @@ export default defineContentScript({
       if (!pendingText.trim()) {
         debug('跳过：pendingText 为空（没抓到输入框文本）');
         return null;
+      }
+      if (snapshot.settings.skillInjectionEnabled === false) {
+        activeSkillName = null;
       }
       const original = pendingText;
       const result = buildAugmentedPrompt(original, {
@@ -73,6 +90,8 @@ export default defineContentScript({
         memoryEnabled: snapshot.settings.memoryEnabled,
         presetEnabled: snapshot.settings.presetEnabled,
         presetCadence: snapshot.settings.presetCadence,
+        skillInjectionEnabled: snapshot.settings.skillInjectionEnabled,
+        activeSkillName,
       });
       if (result.augmentedText === original) {
         debug('跳过：没有可注入内容', {
@@ -90,6 +109,7 @@ export default defineContentScript({
 
       messageCount += 1;
       pendingText = '';
+      activeSkillName = result.activatedSkill?.name ?? null;
       debug('注入成功', { 技能: result.activatedSkill?.name ?? null, 消息数: messageCount });
       postBridge({ kind: 'ACTIVE_SKILL', name: result.activatedSkill?.name ?? null });
       postBridge({ kind: 'MSG_COUNT', count: messageCount });

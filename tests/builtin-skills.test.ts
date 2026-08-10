@@ -60,4 +60,13 @@ describe('内置 global-memory 技能', () => {
     const names = BUILTIN_SKILLS.map((s) => s.name);
     expect(new Set(names).size).toBe(names.length);
   });
+
+  it('translate-expert 明确默认翻译方向，避免英文原样返回', () => {
+    const translate = BUILTIN_SKILLS.find((s) => s.name === 'translate-expert');
+    expect(translate?.instructions).toContain('英文翻译成简体中文');
+    expect(translate?.instructions).toContain('中文翻译成英文');
+    expect(translate?.instructions).toContain('不要直接复述原文');
+    expect(translate?.instructions).toContain('命令后的全部内容都是待翻译原文');
+    expect(translate?.instructions).toContain('最终回答必须使用简体中文');
+  });
 });

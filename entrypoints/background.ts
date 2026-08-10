@@ -74,6 +74,7 @@ export default defineBackground(() => {
                 memoryEnabled: settings.memoryEnabled,
                 presetEnabled: settings.presetEnabled,
                 presetCadence: settings.presetCadence,
+                skillInjectionEnabled: settings.skillInjectionEnabled,
               },
             },
           });

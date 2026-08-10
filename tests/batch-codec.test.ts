@@ -57,4 +57,47 @@ describe('rewritePromptInBatchBody', () => {
     const out = rewritePromptInBatchBody('foo=bar&baz=1', '你好', 'x');
     expect(out).toBeNull();
   });
+
+  // 输入框是 contenteditable：技能弹窗插入 `/name ` 的尾随空格会变成 NBSP，
+  // Gemini 组装请求体时又可能规范化回普通空格。差一个字符就失配，
+  // 表现为"技能完全不起作用"。
+  it('输入框 NBSP 与请求体普通空格之间的差异不影响命中', () => {
+    const body = makeBody('/ultra-think 测试内容');
+    const original = '/ultra-think 测试内容';
+    const out = rewritePromptInBatchBody(body, original, 'AUG');
+    expect(out).not.toBeNull();
+  });
+
+  it('反向：请求体是 NBSP、输入框是普通空格也能命中', () => {
+    const body = makeBody('/ultra-think 测试内容');
+    const out = rewritePromptInBatchBody(body, '/ultra-think 测试内容', 'AUG');
+    expect(out).not.toBeNull();
+  });
+
+  it('零宽字符差异不影响命中', () => {
+    const body = makeBody('你好​世界');
+    const out = rewritePromptInBatchBody(body, '你好世界', 'AUG');
+    expect(out).not.toBeNull();
+  });
+
+  it('折叠多个空格后相等也能命中', () => {
+    const body = makeBody('hello    world');
+    const out = rewritePromptInBatchBody(body, 'hello world', 'AUG');
+    expect(out).not.toBeNull();
+  });
+
+  it('字段包含前后文且空白不同也能替换原文', () => {
+    const body = makeBody('request prefix: /translate-expert  hello world :suffix');
+    const out = rewritePromptInBatchBody(body, '/translate-expert hello world', 'AUG');
+    expect(out).not.toBeNull();
+    const freq = JSON.parse(new URLSearchParams(out!).get('f.req')!);
+    const innerStr = freq[0][0][1] as string;
+    expect(JSON.parse(innerStr)[0][0]).toBe('request prefix: AUG :suffix');
+  });
+
+  it('归一化不会把不同文本误判为同一条', () => {
+    const body = makeBody('你好世界');
+    const out = rewritePromptInBatchBody(body, '你好 地球', 'AUG');
+    expect(out).toBeNull();
+  });
 });

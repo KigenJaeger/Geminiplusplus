@@ -44,6 +44,10 @@ export interface AugmentationInput {
   presetEnabled: boolean;
   presetCadence: 'first_message' | 'every_message' | 'off';
   activeProject?: { name: string; description: string; instructions: string } | null;
+  /** 技能注入总开关；缺省视为开启（旧调用方不传时保持原行为）。 */
+  skillInjectionEnabled?: boolean;
+  /** 当前会话持续使用的 Skill 名称；新的 /技能名 命令会覆盖它。 */
+  activeSkillName?: string | null;
 }
 
 export interface AugmentationResult {
@@ -62,13 +66,44 @@ export interface SkillCommand {
   rawInput: string;
 }
 
-/** 解析消息开头的 /技能名 命令 */
-export function parseSkillCommand(input: string): SkillCommand | null {
-  const match = /^\/([a-z0-9_-]+)(?:\s+([\s\S]*))?$/i.exec(input.trim());
+/**
+ * 解析消息开头的 /技能名 命令。
+ *
+ * 提供 knownSkillNames 时按真实技能名做最长匹配，从而支持空格、中文和点号等字符，
+ * 同时避免 `web` 抢先匹配 `web search`。未提供名称列表时保留单个非空白名称的
+ * 通用解析，供独立调用与兼容旧行为使用。
+ */
+export function parseSkillCommand(input: string, knownSkillNames: string[] = []): SkillCommand | null {
+  const rawInput = input.trim();
+  if (!rawInput.startsWith('/')) return null;
+
+  if (knownSkillNames.length > 0) {
+    const commandText = rawInput.slice(1);
+    const matchedName = knownSkillNames
+      .map((name) => name.trim())
+      .filter(Boolean)
+      .sort((a, b) => b.length - a.length)
+      .find((name) => {
+        if (!commandText.toLowerCase().startsWith(name.toLowerCase())) return false;
+        const boundary = commandText[name.length];
+        return boundary === undefined || /\s/u.test(boundary);
+      });
+    if (!matchedName) return null;
+
+    return {
+      skillName: matchedName.toLowerCase(),
+      args: commandText.slice(matchedName.length).trim(),
+      rawInput,
+    };
+  }
+
+  const match = /^\/(\S+)(?:\s+([\s\S]*))?$/u.exec(rawInput);
   if (!match) return null;
-  const skillName = match[1]!.toLowerCase();
-  const args = (match[2] ?? '').trim();
-  return { skillName, args, rawInput: input.trim() };
+  return {
+    skillName: match[1]!.toLowerCase(),
+    args: (match[2] ?? '').trim(),
+    rawInput,
+  };
 }
 
 export function buildAugmentedPrompt(
@@ -79,15 +114,19 @@ export function buildAugmentedPrompt(
   const usedMemoryIds: number[] = [];
 
   const trimmed = originalPrompt.trim();
-  const command = parseSkillCommand(trimmed);
-  const activatedSkill = command
-    ? input.skills.find((s) => s.name.toLowerCase() === command.skillName && s.enabled) ?? null
+  // 总开关关闭时不解析 /命令，命令原文当普通消息发出去
+  const skillsOn = input.skillInjectionEnabled !== false;
+  const command = skillsOn ? parseSkillCommand(trimmed, input.skills.map((skill) => skill.name)) : null;
+  const commandSkill = command
+    ? input.skills.find((s) => s.name.trim().toLowerCase() === command.skillName && s.enabled) ?? null
     : null;
+  const continuedSkill = !command && !trimmed.startsWith('/') && input.activeSkillName
+    ? input.skills.find((s) => s.name.trim().toLowerCase() === input.activeSkillName!.trim().toLowerCase() && s.enabled) ?? null
+    : null;
+  const activatedSkill = commandSkill ?? continuedSkill;
 
   // 用户可见文本：去掉了 /技能名 前缀后的部分（保留参数）
-  const visibleUserText = activatedSkill
-    ? (command!.args.length > 0 ? command!.args : trimmed.replace(/^\/\S+\s*/, ''))
-    : trimmed;
+  const visibleUserText = commandSkill ? command!.args : trimmed;
 
   // 1. 激活的技能指令
   if (activatedSkill) {

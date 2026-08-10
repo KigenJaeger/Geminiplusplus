@@ -31,8 +31,9 @@ function replaceStringDeep(
         /* 不是合法 JSON，忽略 */
       }
     }
-    if (!looksLikeJson(value) && value.includes(target)) {
-      return { value: value.replace(target, replacement), replaced: true };
+    if (!looksLikeJson(value)) {
+      const replacedValue = replaceEmbeddedText(value, target, replacement);
+      if (replacedValue !== null) return { value: replacedValue, replaced: true };
     }
     return { value, replaced: false };
   }
@@ -66,6 +67,42 @@ function looksLikeJson(s: string): boolean {
   return (t.startsWith('[') && t.endsWith(']')) || (t.startsWith('{') && t.endsWith('}'));
 }
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** 在较大的字段中查找原文，允许 Gemini 改写空白字符和插入零宽字符。 */
+function replaceEmbeddedText(value: string, target: string, replacement: string): string | null {
+  if (value.includes(target)) return value.replace(target, replacement);
+  const normalizedTarget = normalizeWhitespace(target);
+  if (!normalizedTarget) return null;
+  const pattern = [...normalizedTarget]
+    .map((char) => /\s/u.test(char)
+      ? '[\\s\\u00a0]+'
+      : `${escapeRegExp(char)}[\\u200b\\u200c\\u200d\\ufeff]*`)
+    .join('');
+  const match = new RegExp(pattern, 'u').exec(value);
+  return match
+    ? value.slice(0, match.index) + replacement + value.slice(match.index + match[0].length)
+    : null;
+}
+
+/**
+ * 空白归一化，用于容忍输入框文本与请求体文本之间的空白差异。
+ *
+ * 为什么需要：输入框是 contenteditable（Quill），技能弹窗插入 `/name ` 时尾随空格会
+ * 变成 NBSP( )，Gemini 组装请求体时又可能把它规范化成普通空格。两者只要差一个
+ * 字符，严格相等就失配，整条注入会静默跳过——表现为"技能完全不起作用"。
+ */
+function normalizeWhitespace(s: string): string {
+  return s
+    // 零宽字符直接删除（不能折叠成空格，否则会在原本相邻的字之间凭空插入空格）
+    .replace(/[​‌‍﻿]/gu, '')
+    // NBSP 及其余空白折叠成单个普通空格
+    .replace(/[\s ]+/gu, ' ')
+    .trim();
+}
+
 /**
  * 在一个 x-www-form-urlencoded 的请求体里，把 f.req 内的用户原文替换为增强版。
  * @returns 新的请求体字符串；若未找到原文/无法解析，返回 null（调用方应原样发送）。
@@ -90,7 +127,12 @@ export function rewritePromptInBatchBody(
   }
 
   const trimmedOriginal = originalText.trim();
-  const matches = (s: string): boolean => s === originalText || s.trim() === trimmedOriginal;
+  const normalizedOriginal = normalizeWhitespace(originalText);
+  const matches = (s: string): boolean =>
+    s === originalText
+    || s.trim() === trimmedOriginal
+    // 最后一道：空白归一化后相等（NBSP / 折叠空格 / 零宽字符差异）
+    || (normalizedOriginal.length > 0 && normalizeWhitespace(s) === normalizedOriginal);
 
   const { value, replaced } = replaceStringDeep(parsed, matches, augmentedText, originalText);
   if (!replaced) return null;

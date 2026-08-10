@@ -118,7 +118,7 @@ export default defineContentScript({
       memories: Array<{ id: number; name: string; description: string; content: string }>;
       activePreset: { id: string; name: string; content: string } | null;
       activeProject: { name: string; description: string; instructions: string } | null;
-      settings: { memoryEnabled: boolean; presetEnabled: boolean; presetCadence: 'first_message' | 'every_message' | 'off' };
+      settings: { memoryEnabled: boolean; presetEnabled: boolean; presetCadence: 'first_message' | 'every_message' | 'off'; skillInjectionEnabled: boolean };
     }
 
     function fetchInjectionData(): Promise<InjectionData> {
@@ -356,7 +356,7 @@ export default defineContentScript({
                 memoryEnabled: data.settings.memoryEnabled,
                 presetEnabled: data.settings.presetEnabled,
                 presetCadence: data.settings.presetCadence,
-                skillInjectionEnabled: true,
+                skillInjectionEnabled: data.settings.skillInjectionEnabled,
               },
               messageCount,
               activeSkill: activeSkillName ? { name: activeSkillName } : null,
