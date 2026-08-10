@@ -21,6 +21,32 @@ Gemini++ 将可复用技能、长期记忆、系统提示词预设和项目上�
 - **设置**：开关记忆注入、预设注入、注入节奏。
 - **本地配置备份**：在设置中导出或导入技能、预设、项目和注入设置 JSON；导入时可选择覆盖或合并。
 
+## 界面预览
+
+### Skills 技能
+
+输入 `/技能名` 即可激活技能，也可以启用内置技能或管理自定义 Skill。
+
+![Gemini++ Skills 技能面板](docs/screenshots/skills.png)
+
+### 项目工作区
+
+项目可以保存独立的背景、约束和相关技能，随对话注入 Gemini。
+
+![Gemini++ 项目工作区](docs/screenshots/projects.png)
+
+### 长期记忆
+
+长期记忆保存在本机 IndexedDB，并可固定、删除和按标签管理。
+
+![Gemini++ 长期记忆](docs/screenshots/memory.png)
+
+### 注入设置与配置备份
+
+可以控制记忆、预设的注入行为，并导出或导入本地配置。
+
+![Gemini++ 设置页面](docs/screenshots/settings.png)
+
 ## 隐私与数据
 
 - 技能、记忆、预设和项目数据默认保存在本机 IndexedDB / `chrome.storage` 中。

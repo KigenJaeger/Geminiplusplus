@@ -2,5 +2,6 @@
 .wxt/
 dist/
 .reasonix/
+Gemini-plus-plus-*.zip
 *.log
 .DS_Store
