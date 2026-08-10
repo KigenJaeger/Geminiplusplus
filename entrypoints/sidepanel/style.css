@@ -1,0 +1,269 @@
+﻿:root {
+  --gem-bg: #ffffff;
+  --gem-surface: #f8f9fc;
+  --gem-border: #e2e5ed;
+  --gem-text: #1f2430;
+  --gem-text-subtle: #6b7280;
+  --gem-accent: #4f6bf0;
+  --gem-accent-soft: #eef1fe;
+  --gem-danger: #dc2626;
+  --gem-danger-bg: #fef2f2;
+  --gem-success: #16a34a;
+  --gem-success-bg: #f0fdf4;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gem-bg: #1a1c22;
+    --gem-surface: #242731;
+    --gem-border: #333847;
+    --gem-text: #e8eaf2;
+    --gem-text-subtle: #9aa1b2;
+    --gem-accent: #7c93ff;
+    --gem-accent-soft: #2a3050;
+    --gem-danger: #f87171;
+    --gem-danger-bg: #3a2323;
+    --gem-success: #4ade80;
+    --gem-success-bg: #17301f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--gem-bg);
+  color: var(--gem-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+}
+
+#root { height: 100%; }
+
+.gem-app-shell {
+  display: flex;
+  height: 100vh;
+}
+
+.gem-side-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 56px;
+  padding: 8px 6px;
+  gap: 4px;
+  background: var(--gem-surface);
+  border-right: 1px solid var(--gem-border);
+}
+
+.gem-side-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--gem-text-subtle);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.gem-side-tab:hover { background: var(--gem-accent-soft); }
+
+.gem-side-tab-active {
+  background: var(--gem-accent-soft);
+  color: var(--gem-accent);
+}
+
+.gem-side-tab-icon { width: 20px; height: 20px; }
+
+.gem-app-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 12px 80px;
+}
+
+.gem-page-title { margin: 0 0 4px; font-size: 17px; }
+
+.gem-active-skill {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--gem-success);
+  border-radius: 8px;
+  background: var(--gem-success-bg);
+  color: var(--gem-success);
+  font-size: 12px;
+}
+.gem-active-skill-empty { border-color: var(--gem-border); background: var(--gem-surface); color: var(--gem-text-subtle); }
+.gem-active-skill code { font-weight: 700; }
+
+.gem-muted { color: var(--gem-text-subtle); font-size: 12px; line-height: 1.6; }
+.gem-multiline { white-space: pre-wrap; word-break: break-word; }
+
+.gem-error {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--gem-danger-bg);
+  color: var(--gem-danger);
+  font-size: 12px;
+}
+.gem-success {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--gem-success-bg);
+  color: var(--gem-success);
+  font-size: 12px;
+}
+
+.gem-card {
+  background: var(--gem-surface);
+  border: 1px solid var(--gem-border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.gem-card h3 { margin: 0 0 10px; font-size: 14px; }
+
+.gem-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gem-card-main { flex: 1; min-width: 0; }
+
+.gem-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.gem-card-title code {
+  background: var(--gem-accent-soft);
+  color: var(--gem-accent);
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.gem-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.gem-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--gem-accent-soft);
+  color: var(--gem-accent);
+}
+.gem-badge-ghost { background: var(--gem-border); color: var(--gem-text-subtle); }
+.gem-badge-active { background: var(--gem-success-bg); color: var(--gem-success); }
+
+.gem-tags { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.gem-tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--gem-border);
+  color: var(--gem-text-subtle);
+}
+
+.gem-btn {
+  border: 1px solid var(--gem-border);
+  background: var(--gem-bg);
+  color: var(--gem-text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gem-btn:hover { background: var(--gem-surface); }
+.gem-btn-sm { padding: 4px 8px; font-size: 11px; }
+.gem-btn-primary { background: var(--gem-accent); color: #fff; border-color: var(--gem-accent); }
+.gem-btn-primary:hover { filter: brightness(1.1); }
+.gem-btn-ghost { background: transparent; }
+.gem-btn-danger { color: var(--gem-danger); border-color: var(--gem-danger); background: transparent; }
+
+.gem-fab {
+  position: fixed;
+  right: 16px;
+  bottom: 20px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18);
+}
+
+.gem-field { display: block; margin-bottom: 10px; }
+.gem-field span { display: block; font-size: 11px; color: var(--gem-text-subtle); margin-bottom: 4px; }
+.gem-field input, .gem-field textarea, .gem-field select {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--gem-border);
+  border-radius: 8px;
+  background: var(--gem-bg);
+  color: var(--gem-text);
+  font-size: 13px;
+  font-family: inherit;
+}
+.gem-field textarea { resize: vertical; }
+
+.gem-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.gem-actions { display: flex; gap: 8px; margin-top: 6px; }
+
+.gem-switch { position: relative; display: inline-block; width: 34px; height: 20px; cursor: pointer; }
+.gem-switch input { opacity: 0; width: 0; height: 0; }
+.gem-switch-track {
+  position: absolute;
+  inset: 0;
+  background: var(--gem-border);
+  border-radius: 999px;
+  transition: background .15s;
+}
+.gem-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .15s;
+}
+.gem-switch input:checked + .gem-switch-track { background: var(--gem-accent); }
+.gem-switch input:checked + .gem-switch-track::after { transform: translateX(14px); }
+
+.gem-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gem-border);
+}
+.gem-setting-row:last-of-type { border-bottom: none; }
+.gem-setting-title { font-weight: 600; margin-bottom: 2px; }
+
+.gem-list { padding-left: 18px; margin: 6px 0; }
+.gem-list li { margin-bottom: 6px; }
+.gem-list code { background: var(--gem-accent-soft); color: var(--gem-accent); padding: 0 4px; border-radius: 4px; }
